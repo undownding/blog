@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" >
+  <title>在 OpenWRT 上使用 ShadowSocks 建立透明代理 | UnDownDing&#39;s Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="0.前言因为众所周知的原因，使用 ShadowSocks 对网络进行加速已经是一种普遍使用的行为。但是不管是 VPN 也好，ShadowSocks 也罢，在使用中总会碰见各种不完美的问题。如每个终端都需要单独配置，连接上服务器后所有流量都会走该服务器等等。撰写本文的目的是对最近在路由器上解决这些问题的一个总结，如果在路由器上部署好了 ShadowSocks 的话，不但所有接入该路由器的设备能自动走">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在 OpenWRT 上使用 ShadowSocks 建立透明代理">
+<meta property="og:url" content="http://undownding.me/2015/02/10/use-shadowsocks-on-openwrt/index.html">
+<meta property="og:site_name" content="UnDownDing's Blog">
+<meta property="og:description" content="0.前言因为众所周知的原因，使用 ShadowSocks 对网络进行加速已经是一种普遍使用的行为。但是不管是 VPN 也好，ShadowSocks 也罢，在使用中总会碰见各种不完美的问题。如每个终端都需要单独配置，连接上服务器后所有流量都会走该服务器等等。撰写本文的目的是对最近在路由器上解决这些问题的一个总结，如果在路由器上部署好了 ShadowSocks 的话，不但所有接入该路由器的设备能自动走">
+<meta property="og:updated_time" content="2016-04-21T17:29:30.051Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在 OpenWRT 上使用 ShadowSocks 建立透明代理">
+<meta name="twitter:description" content="0.前言因为众所周知的原因，使用 ShadowSocks 对网络进行加速已经是一种普遍使用的行为。但是不管是 VPN 也好，ShadowSocks 也罢，在使用中总会碰见各种不完美的问题。如每个终端都需要单独配置，连接上服务器后所有流量都会走该服务器等等。撰写本文的目的是对最近在路由器上解决这些问题的一个总结，如果在路由器上部署好了 ShadowSocks 的话，不但所有接入该路由器的设备能自动走">
+  
+    <link rel="alternative" href="/atom.xml" title="UnDownDing&#39;s Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="/undownding.jpg" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">UnDownDing</a></h1>
+		</hgroup>
+
+		
+		<p class="header-subtitle">常用 ID @但丁不淡定，（伪）全栈工程师，江湖人称赵日天。</p>
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>Menu</li>
+						<li>Tags</li>
+						
+						
+						<li>Über</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+							<li><a href="http://cv.undownding.me">关于我</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/undownding" title="github">github</a>
+					        
+								<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="https://zhihu.com/people/undownding" title="zhihu">zhihu</a>
+					        
+								<a class="linkedin" target="_blank" href="https://cn.linkedin.com/in/undownding" title="linkedin">linkedin</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						
+					</div>
+				</section>
+				
+				
+				
+
+				
+				
+				<section class="switch-part switch-part3">
+				
+					<div id="js-aboutme">常用 ID @但丁不淡定，（伪）全栈工程师，江湖人称赵日天。</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">UnDownDing</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+			
+				<img lazy-src="/undownding.jpg" class="js-avatar">
+			
+			</div>
+			<hgroup>
+			  <h1 class="header-author">UnDownDing</h1>
+			</hgroup>
+			
+			<p class="header-subtitle">常用 ID @但丁不淡定，（伪）全栈工程师，江湖人称赵日天。</p>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+					<li><a href="http://cv.undownding.me">关于我</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/undownding" title="github">github</a>
+			        
+						<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="https://zhihu.com/people/undownding" title="zhihu">zhihu</a>
+			        
+						<a class="linkedin" target="_blank" href="https://cn.linkedin.com/in/undownding" title="linkedin">linkedin</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+
+      <div class="body-wrap"><article id="post-use-shadowsocks-on-openwrt" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/02/10/use-shadowsocks-on-openwrt/" class="article-date">
+  	<time datetime="2015-02-09T16:00:00.000Z" itemprop="datePublished">2015-02-10</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      在 OpenWRT 上使用 ShadowSocks 建立透明代理
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="0-前言"><a href="#0-前言" class="headerlink" title="0.前言"></a>0.前言</h2><p>因为众所周知的原因，使用 ShadowSocks 对网络进行加速已经是一种普遍使用的行为。但是不管是 VPN 也好，ShadowSocks 也罢，在使用中总会碰见各种不完美的问题。如每个终端都需要单独配置，连接上服务器后所有流量都会走该服务器等等。撰写本文的目的是对最近在路由器上解决这些问题的一个总结，如果在路由器上部署好了 ShadowSocks 的话，不但所有接入该路由器的设备能自动走 ShadowSocks ，而且可以针对网站选择合适的线路，这些工作对客户端来说都是透明的，只要跟平常一样连接上路由器就好。</p>
+<h2 id="1-准备工作"><a href="#1-准备工作" class="headerlink" title="1.准备工作"></a>1.准备工作</h2><h3 id="硬件准备："><a href="#硬件准备：" class="headerlink" title="硬件准备："></a>硬件准备：</h3><p>可以刷 OpenWRT 的路由器一台（废旧 PC 也可以），建议使用小米路由器mini或联想的New Wifi Mini，两者硬件配置和价格几乎都一样，都是便宜耐操的货（认为本文是软文的话现在就可以 Ctrl + W 了）。</p>
+<h3 id="软件准备："><a href="#软件准备：" class="headerlink" title="软件准备："></a>软件准备：</h3><p>路由器对应的 OpenWRT 固件。下载地址 <a href="http://downloads.openwrt.org.cn/PandoraBox/" target="_blank" rel="external">点击这里</a></p>
+<p>shadowsocks-libev-spec 的 ipk 包，项目地址 <a href="http://sourceforge.net/projects/openwrt-dist/files/shadowsocks-libev/" target="_blank" rel="external">点击这里</a> 请下载 <a href="http://sourceforge.net/projects/openwrt-dist/files/luci-app/shadowsocks-spec/" target="_blank" rel="external">luci-app-shadowsocks</a> 以及对应 CPU 架构的安装包。 如果是刚才提到的那两个型号，请下载 ramips 架构最新的 shadowsocks-libev-spec。</p>
+<p>几个版本的区别是，带 spec 的是针对 OpenWRT 优化过的版本，只要装上了对应的 luci-app 就可以通过 Web 界面管理。而名字带 polarssl 的使用的是 polarssl 库，据说相当于名字没带 polarssl 的版本来说，体积会更小。但是默认的使用 openssl 的版本性能会更好。</p>
+<h2 id="2-操作步骤"><a href="#2-操作步骤" class="headerlink" title="2.操作步骤"></a>2.操作步骤</h2><h3 id="2-1-刷入-OpenWRT"><a href="#2-1-刷入-OpenWRT" class="headerlink" title="2.1 刷入 OpenWRT"></a>2.1 刷入 OpenWRT</h3><p>以下以小米路由器mini为例子，假定本文的读者已打开了 SSH 登录（详细操作请查询官方的操作教程。注意：获得 SSH 会失去官方保修，本文不对这种行为负任何责任）。</p>
+<p>我这里使用的是小米路由器mini的 <a href="http://downloads.openwrt.org.cn/PandoraBox/Xiaomi-Mini-R1CM/stable/PandoraBox-ralink-xiaomi-mini-r355-20150114.bin" target="_blank" rel="external">PandoraBox r355固件</a>，把该固件上传到路由器的 /tmp 目录下后，SSH 登录上去并执行以下指令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mtd -r write /tmp/PandoraBox-ralink-xiaomi-mini-r466-20140701.bin firmware</span><br></pre></td></tr></table></figure>
+<p>执行后路由器会自动重启，重启完成后即可通过 WiFi 或网线连接到已经刷入 OpenWRT 的路由器。</p>
+<p>如果是使用 x86 的 PC 作为软路由的话，把U盘/存储卡做成 OpenWRT 的启动盘然后重启即可。</p>
+<h3 id="2-2-修改-opkg-conf-使包管理器生效"><a href="#2-2-修改-opkg-conf-使包管理器生效" class="headerlink" title="2.2 修改 opkg.conf 使包管理器生效"></a>2.2 修改 opkg.conf 使包管理器生效</h3><p>因为这个版本的 opkg.conf 有错，导致 opkg 有问题，所以请在 Web 管理界面中的”系统“→”软件包“→”管理“中，把几个镜像源改成这两个地址：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">src/gz oldpackages http://downloads.openwrt.org/barrier_breaker/14.07/ramips/mt7620a/packages/oldpackages </span><br><span class="line">src/gz packages http://downloads.openwrt.org.cn/PandoraBox/ralink/mt7620/packages</span><br></pre></td></tr></table></figure>
+<p>另外因为架构没填写正确，部分 ipk 软件包（如 ShadowSocks）会安装失败，所以还得继续修改 opkg.conf 加入以下几句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">arch all 100</span><br><span class="line">arch noarch 200</span><br><span class="line">arch ralink 300</span><br><span class="line">arch ramips_24kec 400</span><br></pre></td></tr></table></figure>
+<h3 id="2-3-打开-SSH"><a href="#2-3-打开-SSH" class="headerlink" title="2.3 打开 SSH"></a>2.3 打开 SSH</h3><p>这个版本默认不带 SSH，请在 Web 界面的“系统”→”软件包“中安装 openssh-server。安装完成后即可通过 SSH 登录到路由器。</p>
+<p>Windows 下可以使用 putty 作为 SSH 客户端登录</p>
+<h3 id="2-4-ShadowSocks-的安装及配置"><a href="#2-4-ShadowSocks-的安装及配置" class="headerlink" title="2.4 ShadowSocks 的安装及配置"></a>2.4 ShadowSocks 的安装及配置</h3><p>用 WinSCP 工具上传 shadowsocks-libev-spec_2.1.3-1_ramips_24kec.ipk 以及 luci-app-shadowsocks-spec_1.3.0-1_all.ipk 到路由器的 /tmp 下，并在 SSH 窗口里执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd /tmp</span><br><span class="line">opkg install shadowsocks-libev-spec_2.1.3-1_ramips_24kec.ipk</span><br><span class="line">opkg install luci-app-shadowsocks-spec_1.3.0-1_all.ipk</span><br></pre></td></tr></table></figure>
+<p>即可完成 ShadowSocks 部分的配置。</p>
+<p>然后登录到路由器的 Web 管理界面，“服务”→“Shadowsocks”，把“使用配置文件”的勾去掉，填入你的 ShadowSocks 服务器信息，保存并应用。</p>
+<p>然后在 SSH 窗口里执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/etc/init.d/shadowsocks enable</span><br><span class="line">/etc/init.d/shadowsocks start</span><br></pre></td></tr></table></figure>
+<p>刷新 Web 的 Shadowsocks 管理界面，如果显示“Shadowsocks 已在运行”即已成功启动。 </p>
+<h3 id="2-5-DNS的配置"><a href="#2-5-DNS的配置" class="headerlink" title="2.5 DNS的配置"></a>2.5 DNS的配置</h3><p>在进行以下操作前，请先在 Web 管理界面的“网络”→“DHCP/DNS”→“HOSTS和解析文件”中勾上“忽略解析文件”以防止上级 DNS 的污染。</p>
+<p>这个版本的 Shadowsocks 可以打开端口转发，如启用，默认会把本地的 5300 端口转发到 8.8.4.4#53 端口。所以如果只需要使用 Google 的 DNS 服务器作为上游的话，只需要在/etc/dnsmasq.conf 的末尾里添加一行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">server=127.0.0.1#5300</span><br></pre></td></tr></table></figure>
+<p>但是如果全走  Google 的公共 DNS 的话，虽然走加密通道可以防止 DNS 污染，但是同样的，对有 CDN 优化的网站来说，返回的将会是国外域名。如淘宝就会打开国际版。所以必须要加入针对国内网站的优化。</p>
+<p>首先我们继续在 /etc/dnsmasq.conf 的末尾里继续加入：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conf-dir=/etc/dnsmasq.d</span><br></pre></td></tr></table></figure>
+<p>然后在 SSH 窗口中输入以下命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 创建 dnsmasq 的配置目录</span><br><span class="line">mkdir /etc/dnsmasq.d</span><br><span class="line"># 安装 git</span><br><span class="line">opkg install git</span><br><span class="line"># 克隆 dnsmasq-china-list 项目到本地</span><br><span class="line">git clone git://github.com/felixonmars/dnsmasq-china-list /root/dnsmasq-china-list </span><br><span class="line"># 软连接配置文件到 dnsmasq 的配置目录</span><br><span class="line">ln -s /root/dnsmasq-china-list/accelerated-domains.china.conf /etc/dnsmasq.d/accelerated-domains.china.conf</span><br><span class="line"># 重启dnsmasq 服务</span><br><span class="line">/etc/init.d/dnsmasq restart</span><br></pre></td></tr></table></figure>
+<p>另外有一点要注意的是，如果 ShadowSocks 的服务器填写的是域名而不是 ip 的话，会陷入一个死循环（ShadowSocks 未启动→域名无法解析→无法启动 ShadowSocks 服务），所以对于这种情况，在重启 dnsmasq 服务前，建议在 /etc/dnsmasq.d/ 下新建一个 ss-server.conf，内容为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">server=/服务器的根域名xxx.com/114.114.114.114</span><br></pre></td></tr></table></figure>
+<p>或者在 /etc/hosts 里写死该服务器对应的 ip 地址。</p>
+<h3 id="2-6-进阶：自动更新配置文件"><a href="#2-6-进阶：自动更新配置文件" class="headerlink" title="2.6 进阶：自动更新配置文件"></a>2.6 进阶：自动更新配置文件</h3><p>因为安装包的问题所以这个 git 无法使用 pull 以及 merge 命令，我们首先对其修复。</p>
+<p>在 SSH 窗口中输入以下命令：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ln <span class="_">-s</span> /usr/bin/git /usr/bin/git-merge</span><br><span class="line">ln<span class="_">-s</span> /usr/bin/git /usr/bin/git-pull</span><br></pre></td></tr></table></figure>
+<p>然后新建 /root/update.sh，内容如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wget -O- &apos;http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest&apos; | awk -F\| &apos;/CN\|ipv4/ &#123; printf(&quot;%s/%d\n&quot;, $4, 32-log($5)/log(2)) &#125;&apos; &gt; /etc/shadowsocks/ignore.list</span><br><span class="line">cd /root/dnsmasq-china-list</span><br><span class="line">git pull --rebase</span><br><span class="line"></span><br><span class="line">/etc/init.d/dnsmasq restart</span><br><span class="line">/etc/init.d/shadowsocks restart</span><br></pre></td></tr></table></figure>
+<p>然后用 chomod +x /root/update.sh 命令给予该脚本执行权限，然后执行 /root/update.sh 试试看。正常的话配置文件应该会成功更新。</p>
+<p>在路由器的 Web 管理界面中点击“系统”→“计划任务”中，输入以下内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">30 4 * * * /root/update.sh</span><br></pre></td></tr></table></figure>
+<p>保存后，应该每天的凌晨4点就会自动执行这个更新脚本了。</p>
+<h2 id="3-小结"><a href="#3-小结" class="headerlink" title="3.小结"></a>3.小结</h2><p>经过以上的调教后路由器应该就能变身智能分流的路由器了。如果在测试中发现什么问题，欢迎留言讨论。</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/02/20/check-network-type-on-android/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          （转）Android 判断用户2G/3G/4G移动数据网络
+        
+      </div>
+    </a>
+  
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share_jia">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">Share to: &nbsp; </span>
+		<a class="jiathis_button_facebook"></a> 
+    <a class="jiathis_button_twitter"></a>
+    <a class="jiathis_button_plus"></a> 
+    <a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+    <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="use-shadowsocks-on-openwrt" data-title="在 OpenWRT 上使用 ShadowSocks 建立透明代理" data-url="http://undownding.me/2015/02/10/use-shadowsocks-on-openwrt/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2016 UnDownDing
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>
